@@ -18,5 +18,5 @@ user_db = User(app.db)
 
 
 @index.route("/index", methods=["GET"])
-def index():
-    pass
+def main():
+    return render_template("index/index.html")

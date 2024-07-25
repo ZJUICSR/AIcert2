@@ -19,15 +19,16 @@ user_db = User(app.db)
 invitation_db = InvitationCode(app.db)
 
 
-@auth.route("/login", methods=["GET", "POST"])
+@auth.route("/auth/login", methods=["GET", "POST"])
 def login():
     """
     用户登录页面
     :return:
     """
+    url = request.args.get("next", url_for("dashboard.index"))
+
     # 针对已登录用户，跳转到用户界面
     if session.get("login", None):
-        url = request.args.get("next", url_for("dashboard.index"))
         return redirect(url)
 
     # 针对未登录用户，执行登录操作
@@ -50,22 +51,22 @@ def login():
             kwargs["phone"] = user
         if not flag1 and not flag2:
             kwargs["username"] = user
-        data = user_db.find(**kwargs)
+        user = user_db.find(**kwargs)
 
         # step3：登录成功，缓存用户信息
-        if data is not None:
+        if user is not None:
             session["login"] = True
-            session["email"] = data["email"]
-            session["group"] = data["group"]
-            session["username"] = data["username"]
-            session["admin"] = True if data["group"] == "admin" else False
+            session["email"] = user["email"]
+            session["group"] = user["group"]
+            session["username"] = user["username"]
+            session["admin"] = True if user["group"] == "admin" else False
             session.permanent = True
-            return json.dumps(request.form)
+            return json.dumps({"status": 1, "info": "success", "data": user})
         # 登录失败
         return json.dumps({"status": 0, "info": "用户名或密码错误！"})
 
 
-@auth.route("/register", methods=["GET", "POST"])
+@auth.route("/auth/register", methods=["GET", "POST"])
 def register():
     """
     用户注册页面，需要注册码
@@ -135,17 +136,17 @@ def register():
         return json.dumps({"status": 1, "info": "ok"})
 
 
-@auth.route("/logout", methods=["GET"])
+@auth.route("/auth/logout", methods=["GET"])
 def logout():
     """
     退出登录
     :return:
     """
     session.clear()
-    return redirect(url_for("user.login"))
+    return redirect(url_for("auth.login"))
 
 
-@auth.route("/captcha")
+@auth.route("/auth/captcha")
 def captcha():
     """
     生成验证码并写入session
@@ -164,7 +165,7 @@ def captcha():
     }
 
 
-@auth.route("/reset_password", methods=["GET", "POST"])
+@auth.route("/auth/reset_password", methods=["GET", "POST"])
 def reset_password():
     """
     用户重设密码

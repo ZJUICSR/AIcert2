@@ -12,7 +12,7 @@
 <body>
   {% block content %}
   <div style="text-align: center">
-    <form action="{{ url_for('user.login') }}" method="POST">
+    <form action="{{ url_for('auth.login') }}" method="POST">
       <label for="user"> 用户名/邮箱/电话：</label>
       <input type="text" id="user" name="user" value="AIcert"><br>
       <label for="password"> 密码：</label>

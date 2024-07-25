@@ -12,7 +12,7 @@
 <body>
   {% block content %}
   <div style="text-align: center">
-  <form action="{{ url_for('user.register') }}" method="POST">
+  <form action="{{ url_for('auth.register') }}" method="POST">
     <label for="username"> 用户名：</label>
     <input type="text" id="username" name="username" value="AIcert"><br>
     <label for="email"> 邮箱：</label>
