@@ -1,0 +1,17 @@
+*.csv
+deploy
+.DS_Store
+.key
+.idea
+*/.*
+__pycache__
+*.gz
+*.zip
+_build
+setup.cfg
+setup.py
+_commit.bat
+*.pptx
+debug.log
+*.ipynb
+*.pt
