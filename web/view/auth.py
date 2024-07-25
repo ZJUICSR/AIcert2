@@ -10,12 +10,12 @@ from web.model import User, InvitationCode
 from web import app
 from web.utils import helper
 
-user = Blueprint("user", __name__, template_folder="../templates", static_folder="../static")
+auth = Blueprint("auth", __name__, template_folder="../templates", static_folder="../static")
 user_db = User(app.db)
 invitation_db = InvitationCode(app.db)
 
 
-@user.route("/login", methods=["GET", "POST"])
+@auth.route("/login", methods=["GET", "POST"])
 def login():
     """
     用户登录页面
@@ -29,7 +29,7 @@ def login():
     # 针对未登录用户，执行登录操作
     if request.method == "GET":
         # 登录web页面
-        return render_template("user/login.html")
+        return render_template("auth/login.html")
     else:
         # step1：检查验证码
         if request.form.get("captcha", "abc").upper() != session.get("captcha", "").upper():
@@ -61,7 +61,7 @@ def login():
         return json.dumps({"status": 0, "info": "用户名或密码错误！"})
 
 
-@user.route("/register", methods=["GET", "POST"])
+@auth.route("/register", methods=["GET", "POST"])
 def register():
     """
     用户注册页面，需要注册码
@@ -74,7 +74,7 @@ def register():
 
     if request.method == "GET":
         # 注册web页面
-        return render_template("user/register.html")
+        return render_template("auth/register.html")
     else:
         # step1：检查验证码
         if request.form.get("captcha", "abc").upper() != session.get("captcha", "").upper():
@@ -131,23 +131,25 @@ def register():
         return json.dumps({"status": 1, "info": "ok"})
 
 
-@user.route("/logout", methods=["GET", "POST"])
+@auth.route("/logout", methods=["GET"])
 def logout():
     """
     退出登录
     :return:
     """
     session.clear()
-    if request.method == "GET":
-        return redirect(url_for("user.login"))
-    return json.dumps({"status": "1", "info": "已经退出登录！"})
+    return redirect(url_for("user.login"))
 
 
-@app.route("/captcha")
+@auth.route("/captcha")
 def captcha():
+    """
+    生成验证码并写入session
+    :return:
+    """
     # 生成验证码图片
     image, captcha_text = helper.generate_captcha_image()
-    # 将验证码文本存储到session
+    # 将验证码文本写入session
     session["captcha"] = captcha_text
     buf = io.BytesIO()
     image.save(buf, format="PNG")
@@ -158,7 +160,7 @@ def captcha():
     }
 
 
-@user.route("/reset_password", methods=["GET", "POST"])
+@auth.route("/reset_password", methods=["GET", "POST"])
 def reset_password():
     """
     用户重设密码
@@ -166,8 +168,7 @@ def reset_password():
     """
     if request.method == "GET":
         # 登录web页面
-        return render_template("user/reset_password.html")
+        return render_template("auth/reset_password.html")
     else:
         # 登录api页面
-        pass
-        json.dumps({"data": ""})
+        return json.dumps({"data": ""})

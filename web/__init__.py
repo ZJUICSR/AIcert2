@@ -25,15 +25,13 @@ def run(args):
                            password=app.config["MYSQL_DATABASE_PASSWORD"],
                            database=app.config["MYSQL_DATABASE_DB"],
                            charset=app.config["MYSQL_DATABASE_CHARSET"])
-    print("-> db", app.db)
 
     # 初始化session会话
     app.secret_key = app.config["SECRET_KEY"]
 
     # 注册blueprint路由表
-    from web.view import user, home
-    app.register_blueprint(user)
+    from web.view import auth, home
+    app.register_blueprint(auth)
     app.register_blueprint(home)
-    print(f"-> web uri list:\n {app.url_map}")
 
     app.run(**web_config)
