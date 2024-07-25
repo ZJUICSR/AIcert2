@@ -1,7 +1,7 @@
 *.csv
 deploy
 .DS_Store
-.key
+*.key
 .idea
 */.*
 __pycache__
