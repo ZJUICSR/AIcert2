@@ -30,8 +30,8 @@ def run(args):
     app.secret_key = app.config["SECRET_KEY"]
 
     # 注册blueprint路由表
-    from web.view import auth, home
+    from web.view import auth, dashboard
     app.register_blueprint(auth)
-    app.register_blueprint(home)
+    app.register_blueprint(dashboard)
 
     app.run(**web_config)

@@ -1,2 +1,3 @@
 from web.view.auth import auth
-from web.view.home import home
+from web.view.index import index
+from web.view.dashboard import dashboard

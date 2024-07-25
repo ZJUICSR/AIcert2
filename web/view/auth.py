@@ -4,6 +4,10 @@
 __author__ = 'ZJUICSR'
 __copyright__ = 'Copyright © 2024/07/22'
 
+"""
+INFO: auth 用户登录页面
+"""
+
 import json, time, datetime, io
 from flask import Blueprint, render_template, request, session, redirect, url_for
 from web.model import User, InvitationCode
@@ -23,7 +27,7 @@ def login():
     """
     # 针对已登录用户，跳转到用户界面
     if session.get("login", None):
-        url = request.args.get("next", url_for("home.index"))
+        url = request.args.get("next", url_for("dashboard.index"))
         return redirect(url)
 
     # 针对未登录用户，执行登录操作
@@ -69,7 +73,7 @@ def register():
     """
     # 针对已登录用户，跳转到用户界面
     if session.get("login", None):
-        url = request.args.get("next", url_for("home.index"))
+        url = request.args.get("next", url_for("dashboard.index"))
         return redirect(url)
 
     if request.method == "GET":
