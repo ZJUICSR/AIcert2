@@ -4,7 +4,7 @@
 __author__ = 'ZJUICSR'
 __copyright__ = 'Copyright © 2024/07/22'
 
-import json, time, datetime
+import json, time, datetime, io
 from flask import Blueprint, render_template, request, session, redirect, url_for
 from web.model import User, InvitationCode
 from web import app
@@ -31,7 +31,11 @@ def login():
         # 登录web页面
         return render_template("user/login.html")
     else:
-        # 登录api页面
+        # step1：检查验证码
+        if request.form.get("captcha", "abc").upper() != session.get("captcha", "").upper():
+            return json.dumps({"status": 0, "info": "invalid captcha 验证码错误！"})
+
+        # step2：用户登录
         user = request.form.get("user")
         kwargs = {"password": helper.md5(request.form.get("password"))}
         flag1 = helper.is_email(user)
@@ -42,10 +46,10 @@ def login():
             kwargs["phone"] = user
         if not flag1 and not flag2:
             kwargs["username"] = user
-
         data = user_db.find(**kwargs)
+
+        # step3：登录成功，缓存用户信息
         if data is not None:
-            # 登录成功，缓存用户信息
             session["login"] = True
             session["email"] = data["email"]
             session["group"] = data["group"]
@@ -72,7 +76,11 @@ def register():
         # 注册web页面
         return render_template("user/register.html")
     else:
-        # step1: 检查邀请码
+        # step1：检查验证码
+        if request.form.get("captcha", "abc").upper() != session.get("captcha", "").upper():
+            return json.dumps({"status": 0, "info": "invalid captcha 验证码错误！"})
+
+        # step2: 检查邀请码
         code = request.form.get("invitation_code")
         row = invitation_db.find(code=code)
         if row is None:
@@ -81,13 +89,13 @@ def register():
         if (row["status"] != 1) or (exp_time < time.time()):
             return json.dumps({"status": 0, "info": "invitation code expired 邀请码过期！"})
 
-        # step2：检查用户名是否重复
+        # step3：检查用户名是否重复
         username = request.form.get("username")
         row = user_db.find(**{"username": username})
         if row is not None:
             return json.dumps({"status": 0, "info": "username exists!"})
 
-        # step3：检查邮箱是否重复
+        # step4：检查邮箱是否重复
         email = request.form.get("email")
         if not helper.is_email(email):
             return json.dumps({"status": 0, "info": "invalid email address!"})
@@ -95,7 +103,7 @@ def register():
         if row is not None:
             return json.dumps({"status": 0, "info": "email address exists!"})
 
-        # step4：检查密码是否符合规则，大小写+数字+长度大于6
+        # step5：检查密码是否符合规则，大小写+数字+长度大于6
         password = request.form.get("password")
         result = helper.check_password(password)
         if result["length_error"]:
@@ -103,7 +111,7 @@ def register():
         if result["digit_error"] or result["uppercase_error"] or result["lowercase_error"]:
             return json.dumps({"status": 0, "info": "密码必须包含数字、大小写字母!"})
 
-        # step5：写到用户表，将邀请表状态更新
+        # step6：写到用户表，将邀请表状态更新
         password = helper.md5(request.form.get("password"))
         user_db.insert_user(username, email, password, invitation_code=code)
 
@@ -113,7 +121,7 @@ def register():
         if user is None:
             json.dumps({"status": 0, "info": "insert db error!"})
 
-        # step6：添加session字段
+        # step7：添加session字段
         session["login"] = True
         session["email"] = user["email"]
         session["group"] = user["group"]
@@ -133,6 +141,21 @@ def logout():
     if request.method == "GET":
         return redirect(url_for("user.login"))
     return json.dumps({"status": "1", "info": "已经退出登录！"})
+
+
+@app.route("/captcha")
+def captcha():
+    # 生成验证码图片
+    image, captcha_text = helper.generate_captcha_image()
+    # 将验证码文本存储到session
+    session["captcha"] = captcha_text
+    buf = io.BytesIO()
+    image.save(buf, format="PNG")
+    buf.seek(0)
+    return buf.getvalue(), 200, {
+        "Content-Type": "image/png",
+        "Content-Length": str(len(buf.getvalue()))
+    }
 
 
 @user.route("/reset_password", methods=["GET", "POST"])

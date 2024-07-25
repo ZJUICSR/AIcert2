@@ -4,9 +4,12 @@
 __author__ = 'ZJUICSR'
 __copyright__ = 'Copyright © 2024/07/22'
 
-import re, hashlib
+import os, re, hashlib, random, string
 from functools import wraps
-from flask import g, request, redirect, url_for, session
+from flask import request, redirect, url_for, session
+from PIL import Image, ImageDraw, ImageFont
+work_dir = os.path.dirname(os.path.dirname(__file__))
+
 
 def is_email(email):
     """
@@ -113,6 +116,29 @@ def admin_required(f):
     return decorated_function
 
 
+def generate_captcha_image(k=5):
+    # 定义图片大小及背景颜色
+    image = Image.new('RGB', (135, 45), color=(73, 109, 137))
 
+    # 使用系统自带字体，或指定字体文件路径
+    font_path = os.path.join(work_dir, "static/fonts/arial.ttf")
+    fnt = ImageFont.truetype(font_path, 30)
+    d = ImageDraw.Draw(image)
+
+    # 生成5位数的验证码文本
+    captcha_text = ''.join(random.choices(string.ascii_uppercase + string.digits, k=k))
+    d.text((15, 10), captcha_text, font=fnt, fill=(255, 255, 0))
+
+    # 添加干扰线条和噪点
+    for _ in range(random.randint(3, 5)):
+        start = (random.randint(0, image.width), random.randint(0, image.height))
+        end = (random.randint(0, image.width), random.randint(0, image.height))
+        d.line([start, end], fill=(random.randint(50, 200), random.randint(50, 200), random.randint(50, 200)))
+
+    for _ in range(100):
+        xy = (random.randrange(0, image.width), random.randrange(0, image.height))
+        d.point(xy, fill=(random.randint(50, 200), random.randint(50, 200), random.randint(50, 200)))
+
+    return image, captcha_text
 
 
