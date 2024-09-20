@@ -31,7 +31,7 @@ adv_images = evasion.attack(images, labels)
 ## 2.对抗样本检测接口
 ```text
 > class aicert.module.evasion.defense.Twis(model, conf, **kwgs)
-描述：检测对抗样本的类，实现detect、eval两个函数
+描述：检测对抗样本的类，实现detect、eval两个函数的类
 
 Twis类输入:
 model (nn.Module) – 模型对象.
@@ -67,7 +67,7 @@ acc, tpr, fpr = twis.eval(images, labels)
 ## 3.对抗样本去除接口
 ```text
 > class aicert.module.evasion.defense.JPEG(model, conf, adv_method, **kwgs)
-描述：通过加噪方式消除对抗样本威胁，实现defense、eval两个函数
+描述：通过加噪方式消除对抗样本威胁，实现defense、eval两个函数的类
 
 model (nn.Module) – 模型对象.
 conf (dict) - {"model": 模型名称, "dataset": 数据集名称, "mean": 数据mean List[float], "std": 数据std List[float], "num_classes": 标签数量}
@@ -100,11 +100,61 @@ fpr (torch.array) - 验证fpr
 
 ## 4.后门攻击接口
 ```text
+> class aicert.module.backdoor.attack.BadNet(model, conf, **kwgs)
+描述：通过微调已经训练好的模型，在其中添加后门的类
+
+model (nn.Module) – 模型对象.
+conf (dict) - {"model": 模型名称, "dataset": 数据集名称, "mean": 数据mean List[float], "std": 数据std List[float], "num_classes": 标签数量, "targeted": 后门攻击修改的标签}
+**kwgs (dict) - BadNet算法整体需要的其它参数
 
 
+> def BadNet.train(train_loader, lr, steps, **kwgs)
+输入：
+train_loader (torchvison.Dataloader) – 训练数据集.
+lr (float) - learning rate, e.g., 1e-4
+steps (int) - 微调迭代次数，e.g., 100
+**kwgs (dict) - BadNet算法微调需要的其它参数
+输出：
+model (nn.Module) – 植入后门的模型对象.
+
+
+> def JPEG.eval(model, test_loader)
+输入：
+model (nn.Module) – 模型对象.
+test_loader (torchvison.Dataloader) – 测试数据集.
+输出：
+acc (torch.array) - 验证准确率
+iou (torch.array) - 分割IOU
 ```
 
 
+## 4.后门防御接口
+```text
+> class aicert.module.backdoor.attack.NeuralCleanse(model, conf, **kwgs)
+> class aicert.module.backdoor.attack.STRIP(model, conf, **kwgs)
+描述：检测模型中存在的后门trigger，并逆向trigger的类
 
+model (nn.Module) – 模型对象.
+conf (dict) - {"model": 模型名称, "dataset": 数据集名称, "mean": 数据mean List[float], "std": 数据std List[float], "num_classes": 标签数量, "targeted": 后门攻击修改的标签}
+**kwgs (dict) - STRIP算法整体需要的其它参数
+
+
+> def STRIP.detect(data_loader, **kwgs)
+描述：检测后门函数
+输入：
+data_loader (torchvison.Dataloader) – 校验数据集.
+**kwgs (dict) - STRIP算法微调需要的其它参数
+输出：
+prob (torch.array) – 模型存在后门预测置信度.
+
+
+> def STRIP.reverse(data_loader, **kwgs)
+描述：逆向trigger函数
+输入：
+data_loader (torchvison.Dataloader) – 校验数据集.
+**kwgs (dict) - STRIP算法微调需要的其它参数
+输出：
+images (torch.array) – 逆向出来的trigger图像.
+```
 
 
